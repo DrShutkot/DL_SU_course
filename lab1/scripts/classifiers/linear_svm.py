@@ -72,39 +72,21 @@ def svm_loss_vectorized(W, X, y, reg):
     loss = 0.0
     dW = np.zeros(W.shape) # initialize the gradient as zero
     num_train = X.shape[0]
+    
     scores = X.dot(W)
-    yi_scores = scores[np.arange(scores.shape[0]),y] 
-    margins = np.maximum(0, scores - np.matrix(yi_scores).T + 1)
-    margins[np.arange(num_train),y] = 0
-    loss = np.mean(np.sum(margins, axis=1))
+    yi = scores[np.arange(num_train),y] # our y
+    margin = np.maximum(0, scores - np.matrix(yi).T + 1) #loss
+    margin[np.arange(num_train),y] = 0 
+    loss = np.mean(np.sum(margin, axis=1))
     loss += reg * np.sum(W * W)
-    #############################################################################
-    # TODO:                                                                     #
-    # Implement a vectorized version of the structured SVM loss, storing the    #
-    # result in loss.                                                           #
-    #############################################################################
-    # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    binary = margins
-    binary[margins > 0] = 1
-    row_sum = np.sum(binary, axis=1)
-    binary[np.arange(num_train), y] = -row_sum.T
-    dW = np.dot(X.T, binary)
+
+    binary_score = margin
+    binary_score[margin > 0] = 1 # matrix of 0 and 1, for deriative(*X)
+    row_sum = np.sum(binary_score, axis=1) # sum yi
+    binary_score[np.arange(num_train), y] = -row_sum.T # in formula yj!=y
+    dW = np.dot(X.T, binary_score) # deriative
     dW /= num_train
-    dW += 2*reg*W
-    # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    dW += 2*reg*W # deriatve reg
 
-    #############################################################################
-    # TODO:                                                                     #
-    # Implement a vectorized version of the gradient for the structured SVM     #
-    # loss, storing the result in dW.                                           #
-    #                                                                           #
-    # Hint: Instead of computing the gradient from scratch, it may be easier    #
-    # to reuse some of the intermediate values that you used to compute the     #
-    # loss.                                                                     #
-    #############################################################################
-    # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-
-    # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     return loss, dW
